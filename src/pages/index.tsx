@@ -1,8 +1,8 @@
-import Head from 'next/head'
-import Image from 'next/image'
-import {Inter} from 'next/font/google'
+import { styled } from '../styles'
 
-const inter = Inter({ subsets: ['latin'] })
+const Button = styled('button', {
+  backgroundColor: '$rocketseat'
+})
 
 export default function Home() {
   return (
