@@ -1,9 +1,8 @@
-import { GetStaticProps, GetStaticPaths } from "next"
-import Image from "next/image";
-import Stripe from "stripe";
-import { stripe } from "../../lib/stripe";
+import { GetStaticPaths, GetStaticProps } from "next"
+import Image from "next/image"
+import Stripe from "stripe"
+import { stripe } from "../../lib/stripe"
 import { ImageContainer, ProductContainer, ProductDetails } from "../../styles/pages/product"
-import {useRouter} from 'next/router';
 
 interface ProductProps {
   product: {
@@ -12,15 +11,13 @@ interface ProductProps {
     imageUrl: string
     price: string
     description: string
+    defaultPriceId: string
   }
 }
 
-export default function Product({product}: ProductProps) {
-
-  const { isFallback } = useRouter()
-
-  if (isFallback) {
-    return <p>Loading...</p>
+export default function Product({ product }: ProductProps) {
+  function handleBuyButton() {
+    console.log(product.defaultPriceId);
   }
 
   return (
@@ -35,7 +32,7 @@ export default function Product({product}: ProductProps) {
 
         <p>{product.description}</p>
 
-        <button>
+        <button onClick={handleBuyButton}>
           Comprar agora
         </button>
       </ProductDetails>
@@ -46,22 +43,21 @@ export default function Product({product}: ProductProps) {
 export const getStaticPaths: GetStaticPaths = async () => {
   return {
     paths: [
-      {
-        params: { id: 'prod_MLH5Wy0Y97hDAC' }
-      }
+      { params: { id: 'prod_MLH5Wy0Y97hDAC' } },
     ],
-    fallback: true,
+    fallback: 'blocking',
   }
 }
 
 export const getStaticProps: GetStaticProps<any, { id: string }> = async ({ params }) => {
-  if (!params || !params.id) {
+
+  if(!params || ! params.id) {
     return {
-      notFound: true,
-    };
+      notFound: true
+    }
   }
 
-  const productId = params.id;
+  const productId = params.id
 
   const product = await stripe.products.retrieve(productId, {
     expand: ['default_price']
@@ -79,7 +75,8 @@ export const getStaticProps: GetStaticProps<any, { id: string }> = async ({ para
           style: 'currency',
           currency: 'BRL'
         }).format(price.unit_amount ? price.unit_amount / 100 : 0),
-        description: product.description
+        description: product.description,
+        defaultPriceId: price.id
       }
     },
     revalidate: 60 * 60 * 1 // 1 hours
